@@ -1,0 +1,14 @@
+/stock-trading-bot
+│
+├── /src
+│   ├── /api          # Handling mock API interactions
+│   ├── /services     # Business logic (monitoring, trading strategies)
+│   ├── /models       # Data models for trades, balances, etc.
+│   ├── /utils        # Helper functions, e.g., calculations
+│   ├── app.js        # Main application entry point
+│   └── config.js     # Configuration (API endpoint, trading parameters)
+│
+├── /logs             # Logs of trades, price updates
+│
+├── package.json      # Dependencies
+└── README.md         # Documentation

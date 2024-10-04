@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Stock Trading Dashboard</title>
+        <script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+        <style>
+            .container {
+                display: flex;
+                flex-direction: column;
+                margin-top: 50px;
+            }
+            .stock-price {
+                font-size: 2em;
+                margin-bottom: 20px;
+            }
+            .action-box {
+                margin-bottom: 20px;
+                font-size: 1.8em;
+                color: blue;
+            }
+            .stock-date {
+                font-size: 1.2em;
+                margin-bottom: 10px;
+            }
+            .container-1 {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+            .container-2 {
+                display: flex;
+                flex-direction: column;
+                justify-content: space-around;
+                align-items: center;
+                padding: 2em;
+            }
+            button {
+                padding: 2px 2px;
+                font-size: 1em;
+                background-color: rgb(55, 55, 212);
+                color: white;
+                border: none;
+                cursor: pointer;
+            }
+            button:hover {
+                background-color: darkblue;
+            }
+            .stock-date {
+                font-size: 1.2em;
+                margin-bottom: 10px;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="chartContainer" style="height: 370px; width: 90%; margin: 0 auto;"></div>
+        <div class="container">
+            <div class="container-1">
+                <div class="stock-date">Trade Date: <span id="stockDate"></span></div>
+                <div class="stock-price">
+                    Current Stock Price: <span id="stockPrice">$0.00</span>
+                </div>
+                <div class="action-box" id="actionBox">
+                    <!-- Bot actions (buy/sell/observe) will be displayed here -->
+                </div>
+                <div>
+                    <label for="numTransactions">Number of Last Transactions:</label>
+                    <input
+                        type="number"
+                        id="numTransactions"
+                        name="numTransactions"
+                        min="1"
+                        max="100"
+                        value="10"
+                    />
+                    <button onclick="generateReport()">Generate Report</button>
+                </div>
+                <div class="container-2">
+                    <div class="stock-date">
+                        Current Balance: <span id="currentBalance"></span>
+                    </div>
+                    <div class="stock-date">
+                        Initial Balance: <span id="initialBalance"></span>
+                    </div>
+                    <div class="stock-date">
+                        Total Stocks Owned: <span id="totalStocksOwned"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            async function generateReport() {
+                const numTransactions =
+                    document.getElementById("numTransactions").value;
+                fetch(`/report?num=${numTransactions}`)
+                    .then((response) => {
+                        if (!response.ok) {
+                            throw new Error("Network response was not ok");
+                        }
+                        return response.blob();
+                    })
+                    .then((blob) => {
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement("a");
+                        a.style.display = "none";
+                        a.href = url;
+                        a.download = "report.csv";
+                        document.body.appendChild(a);
+                        a.click();
+                        window.URL.revokeObjectURL(url);
+                        alert(
+                            "Report generated successfully. The file has been downloaded."
+                        );
+                    })
+                    .catch((error) => {
+                        console.error("Error generating report:", error);
+                    });
+            }
+            window.onload = function () {
+                var dataPoints = [];
+                var chart = new CanvasJS.Chart("chartContainer", {
+                    title: {
+                        text: "Real-Time TradeBot",
+                    },
+                    axisY: {
+                        title: "Price in USD",
+                        includeZero: false,
+                    },
+                    data: [
+                        {
+                            type: "line",
+                            dataPoints: dataPoints,
+                        },
+                    ],
+                });
+
+                // Function to add data point with specific color based on bot action
+                function addDataPoint(date, price, action) {
+                    var color;
+
+                    // Determine the color based on bot action
+                    switch (action) {
+                        case "buy":
+                            color = "green";
+                            break;
+                        case "sell":
+                            color = "red";
+                            break;
+                        case "observe":
+                            color = "black";
+                            break;
+                        default:
+                            color = "blue"; // Fallback in case of unknown action
+                    }
+
+                    // Add data point to the chart with the respective color
+                    dataPoints.push({
+                        x: new Date(date),
+                        y: parseFloat(price),
+                        markerColor: color,
+                        markerType: "circle",
+                        action: action,
+                    });
+
+                    // Limit number of points on the chart
+                    if (dataPoints.length > 10) {
+                        dataPoints.shift();
+                    }
+                    chart.render();
+                }
+
+                // Function to fetch all historical stock data and render the chart
+                function fetchAllData() {
+                    fetch("/stock/fetch-all") // Fetch all data on page load
+                        .then((response) => response.json())
+                        .then((data) => {
+                            if(!data) return;
+                            console.log("Fetching all data:", data);
+                            const prices = data.price;
+                            const dates = data.date;
+                            const actions = data.action;
+                            const currentBalance = data.balance;
+                            const stockOwned = data.stockOwned;
+
+                            // Loop through historical data and add to chart
+                            for (let i = 0; i < prices.length; i++) {
+                                addDataPoint(dates[i], prices[i], actions[i]);
+                            }
+
+                            chart.render();
+                            if (prices.length > 0) {
+                                // Update the stock info display with the latest data
+                                const latestPrice = prices[prices.length - 1].toFixed(2);
+                                const latestDate = dates[dates.length - 1];
+                                const latestAction = actions[actions.length - 1];
+                                updateStockInfo(latestDate, latestPrice, latestAction);
+                                updateDashboard(currentBalance, 10000, stockOwned);
+                            }
+                        })
+                        .catch((error) => {
+                            console.error("Error fetching all data:", error);
+                        });
+                }
+
+                // Function to fetch new stock data periodically and append to the chart
+                function fetchNewData() {
+                    fetch("/stock/fetch-new") // Fetch new data at regular intervals
+                        .then((response) => response.json())
+                        .then((data) => {
+                            console.log("Fetching new data:", data);
+                            if (data.noChange) {
+                                console.log("No new stock data.");
+                                return;
+                            }
+                            const currentBalance = data.balance;
+                            const stockOwned = data.stockOwned;
+                            const stocks = data.stocks;
+                            stocks.forEach((stock) => {
+                                const price = stock.price.toFixed(2);
+                                const action = stock.action; // 'buy', 'sell', or 'observe'
+                                const date = stock.date;
+                                addDataPoint(date, price, action); // Append new data to chart
+                                updateStockInfo(date, price, action); // Update bot action display
+                            });
+                            updateDashboard(currentBalance, 10000, stockOwned);
+
+                            chart.render();
+                        })
+                        .catch((error) => {
+                            console.error("Error fetching new stock data:", error);
+                        });
+                }
+
+                // function update dashboard
+                function updateDashboard(
+                    currentBalance,
+                    initialBalance,
+                    totalStocksOwnned
+                ) {
+                    document.getElementById("currentBalance").innerText = `$${currentBalance}`;
+                    document.getElementById("initialBalance").innerText = `$${initialBalance}`;
+                    document.getElementById("totalStocksOwned").innerText = `${totalStocksOwnned}`;
+                }
+
+                // Function to update stock price and action in the UI
+                function updateStockInfo(date, price, action) {
+                    document.getElementById("stockDate").innerText = new Date(
+                        date
+                    ).toLocaleDateString("en-GB", {
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric",
+                    });
+                    document.getElementById("stockPrice").innerText = `$${price}`;
+                    document.getElementById("actionBox").innerText = `Bot Action: ${
+                        action.charAt(0).toUpperCase() + action.slice(1)
+                    }`;
+                    document.getElementById("actionBox").style.color =
+                        action === "buy" ? "green" : action === "sell" ? "red" : "blue";
+                }
+
+                // Fetch all historical data on page load
+                fetchAllData();
+
+                // Fetch new stock data and update chart every 20 seconds
+                setInterval(fetchNewData, 20000);
+            };
+        </script>
+    </body>
+</html>
