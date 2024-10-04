@@ -3,8 +3,21 @@ Features:
 - [x] Periodically Fetches stock data from the Polygon.io API
 - [x] Analyzes stock data and predicts whether to buy, sell, or observe (Bot activity)
 - [x] Allows users to view stock data and latest predictions by the bot
-- [x] Represents a dynamic chart of stock data and the actions made based on predictions
+- [x] Represents a dynamic chart of stock data and the actions made based on predictions. Each point on chart represents a stock transaction. (:red_circle: - Sell, :green_circle: - Buy, :black_circle: - Observe)
 - [x] Generates a report of stock transactions for a given number of transactions (CSV file)
+
+![Real-Time TradeBot](./images/trade-bot-screenshot.png)
+
+## Tech Stack
+- Frontend
+  - HTML
+  - CSS
+  - JavaScript
+  - Chart.js
+- Backend
+  - Node.js
+  - Express.js
+  - MongoDB
 
 ## Installation and Setup
 1. Clone the repository
