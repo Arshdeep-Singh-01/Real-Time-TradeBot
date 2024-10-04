@@ -15,7 +15,8 @@ const botRouter = require('./routes/stock');
 const reportRouter = require('./routes/report');
 
 // Connect to DB
-connect('mongodb://localhost:27017/stock-trading-bot');
+const url = process.env.MONGODB_URL;
+connect(url);
 
 app.set('view engine', 'ejs');
 app.set('views', path.resolve('./src/views'));

@@ -1,5 +1,26 @@
-## Routes
+This is a simple stock trading application that uses a bot to analyze stock data and make predictions. 
+Features:
+- [x] Periodically Fetches stock data from the Polygon.io API
+- [x] Analyzes stock data and predicts whether to buy, sell, or observe (Bot activity)
+- [x] Allows users to view stock data and latest predictions by the bot
+- [x] Represents a dynamic chart of stock data and the actions made based on predictions
+- [x] Generates a report of stock transactions for a given number of transactions (CSV file)
 
+## Installation and Setup
+1. Clone the repository
+2. Install dependencies: `npm install`
+3. Create a `.env` file in the root directory and add the following environment variables:
+   - `MONGODB_URI`: MongoDB connection string
+   - `POLYGON_API_KEY`: Polygon.io API key
+4. Start the application: `npm start`
+5. Open a browser and navigate to `http://localhost:3000`
+
+## Specifications and assumptions
+- The bot makes predictions based on the stock data fetched from the Polygon.io API. (Data starts from October-2022). Data is fetched reguarly after 21 seconds (just to prevent the API rate limit).
+- Price of for each day is averaged from the high and low prices.
+- The bot predicts whether to buy, sell, or observe based on the price trend. Final decision to process the transcation depends on availabe balance and stocks owned.
+
+## Routes
 | Route              | Method | Description                                                      | Controller Function                         | Query Parameters             |
 |--------------------|--------|------------------------------------------------------------------|--------------------------------------------|------------------------------|
 | `/report`          | `GET`  | Generates a report for a given number of transactions.           | `handleGenerateReport(req, res, num)`      | `num`: Number of transactions |
