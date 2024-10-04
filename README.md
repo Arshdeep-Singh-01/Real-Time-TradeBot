@@ -1,4 +1,4 @@
-This is a simple stock trading application that uses a bot to analyze stock data and make predictions. 
+A real-time stock trading application that makes decisions based on the predictions made by the bot.
 Features:
 - [x] Periodically Fetches stock data from the Polygon.io API
 - [x] Analyzes stock data and predicts whether to buy, sell, or observe (Bot activity)
